@@ -25,7 +25,6 @@ function fun120902() {
 
     let input = getInput1209().split('\n').map(line => line.trim().split('').map(digit => parseInt(digit)));
 
-    let danger = 0;
     let basinIndex = 0;
     let basinSize: Array<number> = [];
 
@@ -35,7 +34,6 @@ function fun120902() {
            let surMin = getSurroundingMinimum(input, i, j)
            if(surMin > input[i][j])
            {
-                danger += input[i][j]+1
                 input[i][j] = -(basinIndex+1)
                 basinIndex++;
                 basinSize.push(1)
