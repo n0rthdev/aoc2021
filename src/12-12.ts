@@ -13,7 +13,6 @@ function fun1212() {
         b.push(it[0])
         graph.set(it[0], a)
         graph.set(it[1], b)
-
     });
 
     let solutions = new Array<string[]>()
@@ -22,26 +21,26 @@ function fun1212() {
     console.log("number of slutions " + solutions.length)
 }
 
-function traverse01(graph : Map<string, string[]>, node : string, path : Array<string>, solutions : Array<string[]>)
-{
+function traverse01(graph : Map<string, string[]>, node : string, path : Array<string>, solutions : Array<string[]>) {
     path.push(node)
     if(node == "end") {
         solutions.push([...path])
     }
     else {
         (graph.get(node) || [])
-        .filter(it => it == "end" || it.toUpperCase() == it || path.indexOf(it) < 0)
-        .forEach(it => traverse01(graph,it,path,solutions))
+        .filter(it => it.toUpperCase() == it || path.indexOf(it) < 0)
+        .forEach(it => traverse01(graph, it, path, solutions))
     }
     path.pop()
 }
 
-function traverse02(graph : Map<string, string[]>, node : string, path : Array<string>, solutions : Array<string[]>, allowDoubleSmall : boolean = true)
+function traverse02(graph : Map<string, string[]>, node : string, path : Array<string>, solutions : Array<string[]>, canJoker : boolean = true)
 {
-    let smallNodeOnPath = (node.toLowerCase() == node && path.indexOf(node) >= 0)
-    if(smallNodeOnPath && !allowDoubleSmall) {
+    let useJoker = (node.toLowerCase() == node && path.indexOf(node) >= 0)
+    if(useJoker && !canJoker) {
         return
     }
+    canJoker = canJoker && !useJoker
     
     path.push(node)
     if(node == "end") {
@@ -50,7 +49,7 @@ function traverse02(graph : Map<string, string[]>, node : string, path : Array<s
     else {
         (graph.get(node) || [])
         .filter(it => it != "start")
-        .forEach(it => traverse02(graph,it,path,solutions,allowDoubleSmall && !smallNodeOnPath))
+        .forEach(it => traverse02(graph,it,path,solutions,canJoker))
     }
     path.pop()
 }
