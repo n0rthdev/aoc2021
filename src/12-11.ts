@@ -59,8 +59,8 @@ function fun121102() {
 
 function flashOctopus(input : number[][], flashing : number[][], x : number, y : number)
 {
-    for(let i = Math.max(0,x-1); i < Math.min(x+2,input.length);i++) {
-        for(let j = Math.max(0,y-1); j < Math.min(y+2,input.length);j++) {
+    for(let i = Math.max(0,x-1); i < Math.min(x+2,input.length); i++) {
+        for(let j = Math.max(0,y-1); j < Math.min(y+2,input.length); j++) {
             input[i][j]++
             if(input[i][j] == 10) {
                 flashing.push([i,j])
