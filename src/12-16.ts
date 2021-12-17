@@ -2,7 +2,7 @@ import { isMinusToken, ModifierSyntaxKind } from "typescript";
 
 function fun121602() {
 
-    let input =  getInput1216()
+    let input = getInput1216()
     let scanner = new Scanner(input)
     let parser = new Parser(scanner)
 
@@ -12,7 +12,7 @@ function fun121602() {
 
 function fun121601() {
 
-    let input =  getInput1216()
+    let input = getInput1216()
     let scanner = new Scanner(input)
     let parser = new Parser(scanner)
 
@@ -21,14 +21,12 @@ function fun121601() {
     console.log("version sum is " + sum)
 }
 
-function sumVersion(toVisit: Packet[]) : number
-{
+function sumVersion(toVisit: Packet[]): number {
     let sum = 0
-    while(toVisit.length > 0)
-    {
+    while (toVisit.length > 0) {
         let p = toVisit.shift()!!
         sum += p.version
-        if(p instanceof Operator) {
+        if (p instanceof Operator) {
             toVisit.push(...p.children)
         }
     }
@@ -42,10 +40,10 @@ class Parser {
         this.scanner = scanner
     }
 
-    parseNextPacket() : Packet {
+    parseNextPacket(): Packet {
         let version = this.readNextNumber(3)
         let typeID = this.readNextNumber(3)
-        if(typeID == 4) {
+        if (typeID == 4) {
             return new Literal(version, this.parseLiteralValue())
         }
         else {
@@ -54,8 +52,8 @@ class Parser {
         }
     }
 
-    parseChildren(lengthTypeID : number) : Array<Packet> {
-        if(lengthTypeID == 0) {
+    parseChildren(lengthTypeID: number): Array<Packet> {
+        if (lengthTypeID == 0) {
             let childrenSize = this.readNextNumber(15)
             return this.parsePacketsSizeLimit(childrenSize)
         }
@@ -68,38 +66,32 @@ class Parser {
     parsePacketsSizeLimit(sizeLimit: number) {
         let start = this.scanner.index()
         let ret = new Array<Packet>()
-        while(this.scanner.index() - start < sizeLimit) {
-            let packet = this.parseNextPacket()
-            if(packet) {
-                ret.push(packet)
-            }
+        while (this.scanner.index() - start < sizeLimit) {
+            ret.push(this.parseNextPacket())
         }
         return ret
     }
-    
-    parsePacketsCountLimit(countLimit: number) : Array<Packet> {
+
+    parsePacketsCountLimit(countLimit: number): Array<Packet> {
         let ret = new Array<Packet>()
-        for(let i = 0; i < countLimit;i++) {
-            let packet = this.parseNextPacket()
-            if(packet) {
-                ret.push(packet)
-            }
+        for (let i = 0; i < countLimit; i++) {
+            ret.push(this.parseNextPacket())
         }
         return ret
     }
 
 
-    parseLiteralValue() : number {
+    parseLiteralValue(): number {
         let all = ""
         let cont = false
         do {
             cont = this.readNextBoolean()
             all += this.scanner.readNext(4)
-        } while(cont);
+        } while (cont);
 
         return parseInt(all, 2)
     }
-    
+
     readNextNumber(nbits: number) {
         return parseInt(this.scanner.readNext(nbits), 2)
     }
@@ -111,79 +103,79 @@ class Parser {
 
 class Packet {
     version: number
-    constructor(version : number) {
+    constructor(version: number) {
         this.version = version
     }
-    calc () : number {
+    calc(): number {
         return -1
     }
 }
 
 class Operator extends Packet {
     typeId: number
-    lengthTypeID : number
+    lengthTypeID: number
     children: Array<Packet>
-    constructor(version : number, typeId : number,lengthTypeID : number, children: Packet[]) {
+    constructor(version: number, typeId: number, lengthTypeID: number, children: Packet[]) {
         super(version)
         this.typeId = typeId
-        this.lengthTypeID= lengthTypeID
-        this.children = children 
+        this.lengthTypeID = lengthTypeID
+        this.children = children
     }
-    calc () : number {
-        switch(this.typeId) { 
-            case 0: { 
-               return this.children.reduce((sum, current) => sum + current.calc(), 0);
- 
-            } 
-            case 1: { 
-                return this.children.reduce((sum, current) => sum * current.calc(), 1);
-            } 
-            case 2: { 
-                return Math.min(...this.children.map( it => it.calc()));
-               
-            } 
-            case 3: { 
-                return  Math.max(...this.children.map( it => it.calc()));
-               
-            } 
-            case 5: { 
-               if(this.children[0].calc() > this.children[1].calc()) {
-                   return 1;
-               }
-               else   {
-                   return 0;
-               }
-            } 
-            case 6: { 
-               if(this.children[0].calc() < this.children[1].calc()) {
-                   return 1;
-               }
-               else   {
-                   return 0;
-               }
-            } 
-            case 7: { 
-               if(this.children[0].calc() == this.children[1].calc()) {
-                   return 1;
-               }
-               else   {
-                   return 0;
-               }
-            } 
-            default: { 
+    calc(): number {
+        switch (this.typeId) {
+            case 0: {
+                return this.children.reduce((sum, current) => sum + current.calc(), 0);
+
+            }
+            case 1: {
+                return this.children.reduce((prod, current) => prod * current.calc(), 1);
+            }
+            case 2: {
+                return Math.min(...this.children.map(it => it.calc()));
+
+            }
+            case 3: {
+                return Math.max(...this.children.map(it => it.calc()));
+
+            }
+            case 5: {
+                if (this.children[0].calc() > this.children[1].calc()) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+            case 6: {
+                if (this.children[0].calc() < this.children[1].calc()) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+            case 7: {
+                if (this.children[0].calc() == this.children[1].calc()) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+            default: {
                 return -1
-            } 
-         } 
+            }
+        }
     }
 }
 
 class Literal extends Packet {
     value: number
-    constructor(version : number, value : number) {
+    constructor(version: number, value: number) {
         super(version)
         this.value = value
     }
-    calc () : number {
+    calc(): number {
         return this.value;
     }
 }
@@ -202,11 +194,11 @@ class Scanner {
         this.currentHalfByte = this.hex2bin(this.input[0])
         console.log("scanner" + this.hex2bin(this.input))
     }
-    index() : number {
+    index(): number {
         return this.halfByteIndex * 4 + this.bitIndex
     }
-    
-    size() : number {
+
+    size(): number {
         return this.input.length * 4
     }
 
@@ -229,7 +221,7 @@ class Scanner {
     hasByteLeft(): boolean {
         return this.size() - 8 >= this.index()
     }
-    hasNext() : boolean {
+    hasNext(): boolean {
         return this.input.length > this.halfByteIndex
     }
     readToEnd(): string {
@@ -237,7 +229,7 @@ class Scanner {
     }
     startWithNextHalfByte() {
         this.halfByteIndex++
-        if(this.hasNext()) {
+        if (this.hasNext()) {
             this.currentHalfByte = this.hex2bin(this.input[this.halfByteIndex])
             this.bitIndex = 0
         }
