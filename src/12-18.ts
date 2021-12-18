@@ -2,7 +2,7 @@ import { getMutableClone, isLiteralTypeNode, isMinusToken, ModifierSyntaxKind } 
 
 
 function fun121801() {
-    let input = getLargeExample1217().split("\n").map(it => Node.parse(it.trim()))
+    let input = getInput1217().split("\n").map(it => Node.parse(it.trim()))
 
     // check("[[1,2],[[3,4],5]]", 143)
     // check("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384)
@@ -10,7 +10,7 @@ function fun121801() {
     // check("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791)
     // check("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137)
     // check("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488)
-    
+
     // checkR("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]")
     // checkR("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]")
     // checkR("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]")
@@ -30,8 +30,30 @@ function check(input: string, magitude: number) {
 
 function checkR(input: string, result: string) {
     let t = Node.parse(input)
-    t.reduce() 
+    t.reduce()
     console.log("input: " + input + " reduces to " + t.toString() + " " + (t.toString() == result))
+}
+
+function fun121802() {
+    let input = getInput1217().split("\n").map(it => it.trim())
+
+    let max = 0;
+
+    for (let i = 0; i < input.length; i++) {
+        for (let j = 0; j < input.length; j++) {
+            if (i != j) {
+                let node = Node.add(Node.parse(input[i]), Node.parse(input[j]))
+                node.reduce()
+                let t = node.magnitude()
+                if (t > max) {
+                    max = t;
+                    console.log("max " + node.toString())
+                }
+            }
+        }
+    }
+
+    console.log("max " + max)
 }
 
 class Node {
@@ -96,18 +118,26 @@ class Node {
     }
 
     reduce() {
-        while (this.reduceStep(0).length > 0) {
-            console.log("*       " + this.toString())
+        let run = true
+        while (run) {
+            run = false;
+            while (this.explodeStep(0).length > 0) {
+                //console.log("*       " + this.toString())
+            }
+            if (this.splitStep()) {
+                //console.log("*       " + this.toString())
+                run = true;
+            }
         }
     }
 
-    reduceStep(depth: number): number[] {
+    explodeStep(depth: number): number[] {
         if (this.isPair()) {
             if (depth == 4) {
                 return this.explode()
             }
 
-            let result = this.left!.reduceStep(depth + 1)
+            let result = this.left!.explodeStep(depth + 1)
             if (result.length != 0) {
                 if (result[1] >= 0) {
                     this.right!.applyLeft(result[1])
@@ -115,7 +145,7 @@ class Node {
                 }
             }
             else {
-                result = this.right!.reduceStep(depth + 1)
+                result = this.right!.explodeStep(depth + 1)
                 if (result.length != 0 && result[0] >= 0) {
                     this.left!.applyRight(result[0])
                     result[0] = -1
@@ -123,11 +153,18 @@ class Node {
             }
             return result;
         }
+        return []
+    }
+
+    splitStep(): boolean {
+        if (this.isPair()) {
+            return this.left!.splitStep() || this.right!.splitStep()
+        }
         else if (this.canSplit()) {
             this.split()
-            return [-1, -1]
+            return true
         }
-        return []
+        return false
     }
 
     applyLeft(value: number) {
@@ -135,7 +172,7 @@ class Node {
             this.left!.applyLeft(value)
         }
         else {
-            console.log ("      apply left " + this.value + " with " + value)
+            //console.log("      apply left " + this.value + " with " + value)
             this.value! += value
         }
     }
@@ -145,14 +182,14 @@ class Node {
             this.right!.applyRight(value)
         }
         else {
-            console.log ("      apply right " + this.value + " with " + value)
+            //console.log("      apply right " + this.value + " with " + value)
             this.value! += value
         }
     }
 
     explode(): number[] {
         let ret = [this.left!.value!, this.right!.value!]
-        console.log ("      exploding " + this.toString() + " return " + ret.toString())
+        //console.log("      exploding " + this.toString() + " return " + ret.toString())
         this.left = undefined
         this.right = undefined
         this.value = 0
@@ -163,7 +200,7 @@ class Node {
         this.left = Node.fromNumber(Math.floor(this.value! / 2))
         this.right = Node.fromNumber(Math.ceil(this.value! / 2))
         this.value = undefined
-        console.log ("      splitting " + str + " to " + this.toString())
+        //console.log("      splitting " + str + " to " + this.toString())
     }
     magnitude(): number {
         if (this.isPair()) {
@@ -192,7 +229,8 @@ class Node {
     }
 }
 
-fun121801()
+//fun121801()
+fun121802()
 
 function getMiniExample1217(): string {
     return `[1,1]
