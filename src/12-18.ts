@@ -2,7 +2,7 @@ import { getMutableClone, isLiteralTypeNode, isMinusToken, ModifierSyntaxKind } 
 
 
 function fun121801() {
-    let input = getInput1217().split("\n").map(it => Node.parse(it.trim()))
+    let input = getInput1218().split("\n").map(it => Node.parse(it.trim()))
 
     // check("[[1,2],[[3,4],5]]", 143)
     // check("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384)
@@ -35,7 +35,7 @@ function checkR(input: string, result: string) {
 }
 
 function fun121802() {
-    let input = getInput1217().split("\n").map(it => it.trim())
+    let input = getInput1218().split("\n").map(it => it.trim())
 
     let max = 0;
 
@@ -232,7 +232,7 @@ class Node {
 //fun121801()
 fun121802()
 
-function getMiniExample1217(): string {
+function getMiniExample1218(): string {
     return `[1,1]
     [2,2]
     [3,3]
@@ -241,12 +241,12 @@ function getMiniExample1217(): string {
     [6,6]`;
 }
 
-function getStepExample1217(): string {
+function getStepExample1218(): string {
     return `[[[[4,3],4],4],[7,[[8,4],9]]]
     [1,1]`;
 }
 
-function getLargeExample1217(): string {
+function getLargeExample1218(): string {
     return `[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
     [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
     [[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
@@ -259,7 +259,7 @@ function getLargeExample1217(): string {
     [[[[4,2],2],6],[8,7]]`;
 }
 
-function getTest1217(): string {
+function getTest1218(): string {
     return `[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
     [[[5,[2,8]],4],[5,[[9,9],0]]]
     [6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
@@ -272,7 +272,7 @@ function getTest1217(): string {
     [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]`;
 }
 
-function getInput1217(): string {
+function getInput1218(): string {
     return `[[1,8],[[8,7],[3,[1,9]]]]
     [[[[8,1],7],[[9,9],[4,8]]],[[7,[7,2]],[2,[1,6]]]]
     [[[[0,8],0],[0,[7,2]]],[[[3,2],8],[[5,6],3]]]
