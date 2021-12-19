@@ -1,22 +1,70 @@
 import { getMutableClone, isConstructorDeclaration, isLiteralTypeNode, isMinusToken, ModifierSyntaxKind } from "typescript";
 
+class Vector3D {
+    v: number[]
+    constructor(x: number, y: number, z: number) {
+        this.v = [x, y, z]
+    }
+    static fromArray(v: number[]): Vector3D {
+        return new Vector3D(v[0], v[1], v[2])
+    }
+
+    delta(start: Vector3D): Vector3D {
+        return new Vector3D(this.v[0] - start.v[0], this.v[1] - start.v[1], this.v[2] - start.v[2])
+    }
+
+    add(add: Vector3D): Vector3D {
+        return new Vector3D(this.v[0] + add.v[0], this.v[1] + add.v[1], this.v[2] + add.v[2])
+    }
+
+    elementwiseMultiplication(mu: Vector3D): Vector3D {
+        return new Vector3D(this.v[0] * mu.v[0], this.v[1] * mu.v[1], this.v[2] * mu.v[2])
+    }
+    
+    reOrder(axisOrdering: number[]): Vector3D {
+        return new Vector3D(this.v[axisOrdering[0]], this.v[axisOrdering[1]], this.v[axisOrdering[2]])
+    }
+    equals(v2: Vector3D): boolean {
+        return v2.v[0] == this.v[0] && v2.v[1] == this.v[1] && v2.v[2] == this.v[2]
+    }
+
+    manhatten(): number {
+        return this.v.reduce((acc, it) => (acc + Math.abs(it)), 0)
+    }
+
+
+    static ONE() {
+        return new Vector3D(1, 1, 1)
+    }
+    static ZERO() {
+        return new Vector3D(0, 0, 0)
+    }
+
+    orientationNeutralString(): string {
+        return [this.v[0], this.v[1], this.v[2]]
+            .map(it => Math.abs(it))
+            .sort((o1, o2) => o1 - o2)
+            .toString()
+    }
+
+    toString(): string {
+        return this.v.toString()
+    }
+}
 
 class Orientation {
-    ai: number[]
-    d: number[]
-    constructor(axisIndices: number[], axisDirections: number[]) {
-        this.ai = axisIndices
-        this.d = axisDirections
+    axisIndices: number[]
+    axisDirections: Vector3D
+    constructor(axisIndices: number[], axisDirections: Vector3D) {
+        this.axisIndices = axisIndices
+        this.axisDirections = axisDirections
     }
     toString(): string {
-        return "axisMapping: " + this.ai.toString() + " directions " + this.d.toString()
+        return "axisIndices: " + this.axisIndices.toString() + " axisDirections: " + this.axisDirections.toString()
     }
 
-    transform(s: number[]): number[] {
-        let s0 = this.d[0] * s[this.ai[0]]
-        let s1 = this.d[1] * s[this.ai[1]]
-        let s2 = this.d[2] * s[this.ai[2]]
-        return [s0, s1, s2]
+    transformVector(s: Vector3D): Vector3D {
+        return s.reOrder(this.axisIndices).elementwiseMultiplication(this.axisDirections)
     }
 }
 
@@ -28,7 +76,7 @@ function getAllOrientations() {
                 for (let d0 = -1; a2 != a0 && a2 != a1 && d0 <= 1; d0 += 2) {
                     for (let d1 = -1; d1 <= 1; d1 += 2) {
                         for (let d2 = -1; d2 <= 1; d2 += 2) {
-                            orientations.push(new Orientation([a0, a1, a2], [d0, d1, d2]))
+                            orientations.push(new Orientation([a0, a1, a2], new Vector3D(d0, d1, d2)))
                         }
                     }
                 }
@@ -40,24 +88,69 @@ function getAllOrientations() {
 
 let orientations = getAllOrientations()
 
+class Base {
+    offset: Vector3D
+    orientation: Orientation
+    constructor(offset: Vector3D, orientation: Orientation) {
+        this.offset = offset
+        this.orientation = orientation
+    }
+    toString(): string {
+        return "offset: " + this.offset.toString() + " orientation: " + this.orientation.toString()
+    }
+    toGlobal(s: Vector3D): Vector3D {
+        let pn = this.orientation.transformVector(s)
+        return pn.add(this.offset)
+    }
+}
+
+class Scanner {
+    points: Vector3D[]
+    distanes: Map<string, Vector3D[]>
+    base: Base | undefined
+
+    constructor(points: Vector3D[]) {
+        this.points = points
+        this.distanes = Scanner.calc2PointDistances(points)
+    }
+    static calc2PointDistances(points: Vector3D[]) {
+        let dist = new Map<string, Vector3D[]>()
+        for (let i = 0; i < points.length; i++) {
+            for (let j = i + 1; j < points.length; j++) {
+                if (i != j) {
+                    let d = points[i].delta(points[j])
+                    dist.set(d.orientationNeutralString(), [points[i], points[j]])
+                }
+            }
+        }
+        return dist
+    }
+    setBase(base: Base) {
+        this.points = this.points.map(it => base.toGlobal(it))
+        this.distanes = Scanner.calc2PointDistances(this.points)
+        this.base = base
+    }
+}
+
+
 function fun121901() {
-    let input = getInput1219().split("\n\n").map(it => it.split('-\n')[1].split('\n').map(it => it.split(',').map(it => parseInt(it)))).map(it => new Scanner(it))
+    let input = getInput1219().split("\n\n").map(it => it.split('-\n')[1].split('\n').map(it => Vector3D.fromArray(it.split(',').map(it => parseInt(it))))).map(it => new Scanner(it))
     console.log("there are " + input.length + " scanners")
 
-    input[0].overlap = new Overlap([0, 0, 0], new Orientation([0, 1, 2], [1, 1, 1]))
+    input[0].base = new Base(Vector3D.ZERO(), new Orientation([0, 1, 2], Vector3D.ONE()))
     let run = true
 
     while (run) {
         run = false;
         for (let i = 0; i < input.length; i++) {
-            if (input[i].overlap) {
+            if (input[i].base) {
                 for (let j = 0; j < input.length; j++) {
-                    if (input[j].overlap == undefined) {
+                    if (input[j].base == undefined) {
                         console.log("matching " + i + "/" + j)
                         let o = matchScanners(input[i], input[j])
                         if (o) {
                             console.log("matched " + i + "/" + j)
-                            input[j].setOverlap(o)
+                            input[j].setBase(o)
                             run = true
                         }
                     }
@@ -65,18 +158,15 @@ function fun121901() {
             }
         }
     }
-    let allBeacons = new Map<String, number[]>()
+    let allBeacons = new Map<String, Vector3D>()
     input.forEach(it => it.points.forEach(it => allBeacons.set(it.toString(), it)))
     console.log("task1: number of beacons: " + allBeacons.size)
-
-
 
     let maxDist = 0
 
     for (let i = 0; i < input.length; i++) {
         for (let j = i + 1; j < input.length; j++) {
-            let dist = delta(input[i]!.overlap!.delta, input[j]!.overlap!.delta)
-                .reduce((acc, it) => (acc + Math.abs(it)), 0)
+            let dist = input[i].base!.offset.delta(input[j].base!.offset).manhatten()
             if (maxDist < dist) {
                 maxDist = dist
             }
@@ -88,127 +178,63 @@ function fun121901() {
 
 
 
-function matchScanners(scanner1: Scanner, scanner2: Scanner): Overlap | undefined {
-    let counter = 0
+function matchScanners(scanner1: Scanner, scanner2: Scanner): Base | undefined {
+    let baseCount = new Map<String, number>();
+    let bases = new Map<String, Base>();
 
-    let overlapCount = new Map<String, number>();
-    let overlaps = new Map<String, Overlap>();
-
-    for (let [it, s1] of scanner1.distanes) {
+    for (let [it, dots1] of scanner1.distanes) {
         if (scanner2.distanes.has(it)) {
-            let s2 = scanner2.distanes.get(it)!
-            let oriDistance1 = delta(s1[0], s1[1])
-            let oriDistance2 = delta(s2[0], s2[1])
-            let d22 = delta(s2[1], s2[0])
+            let dots2 = scanner2.distanes.get(it)!
+            
+            let oriDistance1 = dots1[0].delta(dots1[1])
 
-            findMatchingTransformations(oriDistance2, oriDistance1).forEach(it => {
-                let s2t0 = it.transform(s2[0])
-                let s2t1 = it.transform(s2[1])
+            let oriDistance2v1 = dots2[0].delta(dots2[1])
+            let oriDistance2v2 = dots2[1].delta(dots2[0])  //needed because produces the opposite orientations
 
-                let dx0 = s2t0[0] - s1[0][0]
-                let dy0 = s2t0[1] - s1[0][1]
-                let dz0 = s2t0[2] - s1[0][2]
+            findMatchingOrientation(oriDistance2v1, oriDistance1).forEach(orientation => {
+                let s2t0 = orientation.transformVector(dots2[0])
+                let s2t1 = orientation.transformVector(dots2[1])
 
-                let dx1 = s2t1[0] - s1[1][0]
-                let dy1 = s2t1[1] - s1[1][1]
-                let dz1 = s2t1[2] - s1[1][2]
+                let d0 = dots1[0].delta(s2t0)
+                let d1 = dots1[1].delta(s2t1)
 
-                if (dx0 != dx1 || dy0 != dy1 || dz0 != dz1) {
+                if (!d0.equals(d1)) {
                     console.log("ERROR: not matching deltas for points")
                 }
-                let overlap = new Overlap([-dx0, -dy0, -dz0], it)
-                let key = overlap.toString()
-                overlapCount.set(key, (overlapCount.get(key) || 0) + 1)
-                overlaps.set(key, overlap)
+                let base = new Base(d0, orientation)
+                let key = base.toString()
+                baseCount.set(key, (baseCount.get(key) || 0) + 1)
+                bases.set(key, base)
             });
-            findMatchingTransformations(d22, oriDistance1).forEach(it => {
-                let s2t0 = it.transform(s2[1])
-                let s2t1 = it.transform(s2[0])
+            findMatchingOrientation(oriDistance2v2, oriDistance1).forEach(orientation => {
+                let s2t0 = orientation.transformVector(dots2[1])
+                let s2t1 = orientation.transformVector(dots2[0])
 
-                let dx0 = s2t0[0] - s1[0][0]
-                let dy0 = s2t0[1] - s1[0][1]
-                let dz0 = s2t0[2] - s1[0][2]
+                let d0 = dots1[0].delta(s2t0)
+                let d1 = dots1[1].delta(s2t1)
 
-                let dx1 = s2t1[0] - s1[1][0]
-                let dy1 = s2t1[1] - s1[1][1]
-                let dz1 = s2t1[2] - s1[1][2]
-
-                if (dx0 != dx1 || dy0 != dy1 || dz0 != dz1) {
+                if (!d0.equals(d1)) {
                     console.log("ERROR: not matching deltas for points")
                 }
-                let overlap = new Overlap([-dx0, -dy0, -dz0], it)
-                let key = overlap.toString()
-                overlapCount.set(key, (overlapCount.get(key) || 0) + 1)
-                overlaps.set(key, overlap)
+                let base = new Base(d0, orientation)
+                let key = base.toString()
+                baseCount.set(key, (baseCount.get(key) || 0) + 1)
+                bases.set(key, base)
             });
         }
     }
-    for (let [key, value] of overlapCount) {
+    for (let [key, value] of baseCount) {
         if (value >= 66) {
-            return overlaps.get(key)
+            return bases.get(key)
         }
     }
     return undefined
 }
-function delta(p1: number[], p2: number[]): number[] {
-    let dx = p2[0] - p1[0]
-    let dy = p2[1] - p1[1]
-    let dz = p2[2] - p1[2]
-    return [dx, dy, dz]
-}
 
-function findMatchingTransformations(s: number[], target: number[]): Orientation[] {
-    let targetCode = target.toString()
+function findMatchingOrientation(s: Vector3D, target: Vector3D): Orientation[] {
     return orientations.filter(o => {
-        return o.transform(s).toString() == targetCode
+        return o.transformVector(s).equals(target)
     });
-}
-
-class Overlap {
-    delta: number[]
-    o: Orientation
-    constructor(delta: number[], o: Orientation) {
-        this.delta = delta
-        this.o = o
-    }
-    toString(): string {
-        return "delta: " + this.delta.toString() + " orientation: " + this.o.toString()
-    }
-    toGlobal(s: number[]): number[] {
-        let pn = this.o.transform(s)
-        return [pn[0] + this.delta[0], pn[1] + this.delta[1], pn[2] + this.delta[2]]
-    }
-}
-
-
-
-class Scanner {
-    points: number[][]
-    distanes: Map<string, number[][]>
-    overlap: Overlap | undefined
-
-    constructor(points: number[][]) {
-        this.points = points
-        this.distanes = Scanner.calc2PointDistances(points)
-    }
-    static calc2PointDistances(points: number[][]) {
-        let dist = new Map<string, number[][]>()
-        for (let i = 0; i < points.length; i++) {
-            for (let j = i + 1; j < points.length; j++) {
-                if (i != j) {
-                    let d = delta(points[j], points[i]).map(it => Math.abs(it))
-                    let v = d.sort((o1, o2) => o1 - o2)
-                    dist.set(v.toString(), [points[i], points[j]])
-                }
-            }
-        }
-        return dist
-    }
-    setOverlap(o: Overlap) {
-        this.points = this.points.map(it => o.toGlobal(it))
-        this.distanes = Scanner.calc2PointDistances(this.points)
-        this.overlap = o
-    }
 }
 
 fun121901()
