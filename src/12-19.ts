@@ -20,7 +20,7 @@ class Vector3D {
     elementwiseMultiplication(mu: Vector3D): Vector3D {
         return new Vector3D(this.v[0] * mu.v[0], this.v[1] * mu.v[1], this.v[2] * mu.v[2])
     }
-    
+
     reOrder(axisOrdering: number[]): Vector3D {
         return new Vector3D(this.v[axisOrdering[0]], this.v[axisOrdering[1]], this.v[axisOrdering[2]])
     }
@@ -134,23 +134,23 @@ class Scanner {
 
 
 function fun121901() {
-    let input = getInput1219().split("\n\n").map(it => it.split('-\n')[1].split('\n').map(it => Vector3D.fromArray(it.split(',').map(it => parseInt(it))))).map(it => new Scanner(it))
-    console.log("there are " + input.length + " scanners")
+    let scanners = getInput1219().split("\n\n").map(it => it.split('-\n')[1].split('\n').map(it => Vector3D.fromArray(it.split(',').map(it => parseInt(it))))).map(it => new Scanner(it))
+    console.log("there are " + scanners.length + " scanners")
 
-    input[0].base = new Base(Vector3D.ZERO(), new Orientation([0, 1, 2], Vector3D.ONE()))
+    scanners[0].base = new Base(Vector3D.ZERO(), new Orientation([0, 1, 2], Vector3D.ONE()))
     let run = true
 
     while (run) {
         run = false;
-        for (let i = 0; i < input.length; i++) {
-            if (input[i].base) {
-                for (let j = 0; j < input.length; j++) {
-                    if (input[j].base == undefined) {
+        for (let i = 0; i < scanners.length; i++) {
+            if (scanners[i].base) {
+                for (let j = 0; j < scanners.length; j++) {
+                    if (scanners[j].base == undefined) {
                         console.log("matching " + i + "/" + j)
-                        let o = matchScanners(input[i], input[j])
+                        let o = matchScanners(scanners[i], scanners[j])
                         if (o) {
                             console.log("matched " + i + "/" + j)
-                            input[j].setBase(o)
+                            scanners[j].setBase(o)
                             run = true
                         }
                     }
@@ -159,14 +159,14 @@ function fun121901() {
         }
     }
     let allBeacons = new Map<String, Vector3D>()
-    input.forEach(it => it.points.forEach(it => allBeacons.set(it.toString(), it)))
+    scanners.forEach(it => it.points.forEach(it => allBeacons.set(it.toString(), it)))
     console.log("task1: number of beacons: " + allBeacons.size)
 
     let maxDist = 0
 
-    for (let i = 0; i < input.length; i++) {
-        for (let j = i + 1; j < input.length; j++) {
-            let dist = input[i].base!.offset.delta(input[j].base!.offset).manhatten()
+    for (let i = 0; i < scanners.length; i++) {
+        for (let j = i + 1; j < scanners.length; j++) {
+            let dist = scanners[i].base!.offset.delta(scanners[j].base!.offset).manhatten()
             if (maxDist < dist) {
                 maxDist = dist
             }
@@ -185,7 +185,7 @@ function matchScanners(scanner1: Scanner, scanner2: Scanner): Base | undefined {
     for (let [it, dots1] of scanner1.distanes) {
         if (scanner2.distanes.has(it)) {
             let dots2 = scanner2.distanes.get(it)!
-            
+
             let oriDistance1 = dots1[0].delta(dots1[1])
 
             let oriDistance2v1 = dots2[0].delta(dots2[1])
@@ -224,7 +224,7 @@ function matchScanners(scanner1: Scanner, scanner2: Scanner): Base | undefined {
         }
     }
     for (let [key, value] of baseCount) {
-        if (value >= 66) {
+        if (value >= Math.floor(12 * 11 / 2)) {
             return bases.get(key)
         }
     }
