@@ -24,7 +24,6 @@ function fun1220() {
     let minj = Number.MAX_SAFE_INTEGER
 
     for (let i = 0; i < puzzleLines.length; i++) {
-        let out = ""
         for (let j = 0; j < puzzleLines[i].length; j++) {
             if (puzzleLines[i][j] == '#') {
                 let pos = [i, j]
@@ -41,14 +40,8 @@ function fun1220() {
                 if (maxi < i) {
                     maxi = i
                 }
-                
-                out += "#"
-            }
-            else {
-                out += "."
-            }
+             }
         }
-        console.log(out)
     }
     mini--;
     minj--;
@@ -57,13 +50,11 @@ function fun1220() {
 
     for (let n = 0; n < 50; n++) {
         let newGrid = new Map<String, number[]>()
-        console.log("step " + n)
         for (let i = mini; i <= maxi; i++) {
-            let out = ""
             for (let j = minj; j <= maxj; j++) {
                 let pos = [i, j]
 
-                let inf = n == 0 ? 0 : ((n%2 == 0) ? Number(algorithm[511] == '#') : Number(algorithm[0] == '#'))
+                let inf = Number(algorithm[0] == '.') ? 0 : ((n%2 == 0) ? Number(algorithm[511] == '#') : Number(algorithm[0] == '#'))
 
                 let a = getGridCell(grid, i - 1, j - 1, mini, maxi, minj, maxj, inf) * 256 +
                     getGridCell(grid, i - 1, j, mini, maxi, minj, maxj, inf) * 128 +
@@ -77,13 +68,8 @@ function fun1220() {
 
                 if (algorithm[a] == '#') {
                     newGrid.set(pos.toString(), pos)
-                    out += "#"
-                }
-                else {
-                    out += "."
                 }
             }
-            console.log(out)
         }
         grid = newGrid
         mini--;
@@ -91,7 +77,7 @@ function fun1220() {
         maxi++;
         maxj++;
     }
-    console.log("there are " + grid.size)
+    console.log("there are " + grid.size + " pixels lit")
 }
 
 
