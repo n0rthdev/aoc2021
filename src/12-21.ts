@@ -46,7 +46,7 @@ class Game {
         return new Game([...this.pos], [...this.score], this.count)
     }
 
-    toString() {
+    toString() : string {
         return this.pos.toString() + this.score.toString()
     }
 
@@ -71,7 +71,6 @@ function fun122102() {
         [8, 3],
         [9, 1],
     ]);
-    let distribution = [1, 3, 6, 7, 6, 3, 1]
 
     games.set(pos.toString() + score.toString(), new Game(pos, score, 1))
 
@@ -88,7 +87,7 @@ function fun122102() {
                         let newgame = oldGame.copy()
                         newgame.pos[p] = ((newgame.pos[p] - 1 + move) % 10 + 1)
                         newgame.score[p] += newgame.pos[p]
-                        newgame.count = oldGame.count * d + (newGames.get(newgame.toString())?.count || 0)
+                        newgame.count = oldGame.count * d  + (newGames.get(newgame.toString())?.count || 0)
                         newGames.set(newgame.toString(), newgame)
                     }
                 }
