@@ -11,7 +11,7 @@ class Frame {
     }
 
     size(): number {
-        return (this.v[0][1] - this.v[0][0]) * (this.v[1][1] - this.v[1][0]) * (this.v[2][1] - this.v[2][0])
+        return this.v.reduce((prod, current) => prod * (current[1]-current[0]), 1);
     }
 
     static intersectAll(master: Frame, toSplit: Frame): Frame[] {
@@ -93,19 +93,14 @@ function fun1222() {
             framesNew.push(...Frame.intersectAll(i, f))
         }
         if(i.isOn) {
-            //optimization to not track off frames
+            //we only keep frames that are lit
             framesNew.push(i)
         }
         frames = framesNew
     }
 
     //result calculation
-    let onCount = 0
-    for (let f of frames) {
-        if (f.isOn) {
-            onCount += f.size()
-        }
-    }
+    let onCount = frames.reduce((sum, current) => sum + current.size(), 0);
 
     console.log("on count " + onCount)
 }
@@ -145,6 +140,7 @@ on x=-41..9,y=-7..43,z=-33..15
 on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
 on x=967..23432,y=45373..81175,z=27513..53682`;
 }
+
 function getTest122202(): string {
     return `on x=-5..47,y=-31..22,z=-19..33
 on x=-44..5,y=-27..21,z=-14..35
